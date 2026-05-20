@@ -3,20 +3,23 @@ import { db } from "@/lib/firebase";
 import { MainDashboardClient } from "@/components/dashboard/main-dashboard-client";
 import type { Order, Product, Customer } from "@/lib/definitions";
 
-const serializeTimestamps = (data: any[]) => data.map(item => {
-  const newItem = { ...item };
-  
-for (const key in newItem) {
-  if (
-    newItem[key] &&
-    newItem[key] instanceof Timestamp
-  ) {
-    newItem[key] = newItem[key].toDate().toISOString();
-  }
-}  }
-  return newItem;
-});
+const serializeTimestamps = (data: any[]) =>
+  data.map((item) => {
+    const newItem = { ...item };
 
+    for (const key in newItem) {
+      if (
+        newItem[key] &&
+        newItem[key] instanceof Timestamp
+      ) {
+        newItem[key] = newItem[key]
+          .toDate()
+          .toISOString();
+      }
+    }
+
+    return newItem;
+  });
 async function getDashboardData() {
   const [ordersSnapshot, customersSnapshot, productsSnapshot] = await Promise.all([
     getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc"))),
