@@ -5,11 +5,15 @@ import type { Order, Product, Customer } from "@/lib/definitions";
 
 const serializeTimestamps = (data: any[]) => data.map(item => {
   const newItem = { ...item };
-  for (const key in newItem) {
-    if (newItem[key] instanceof Timestamp) {
-      newItem[key] = newItem[key].toDate().toISOString();
-    }
+  
+for (const key in newItem) {
+  if (
+    newItem[key] &&
+    newItem[key] instanceof Timestamp
+  ) {
+    newItem[key] = newItem[key].toDate().toISOString();
   }
+}  }
   return newItem;
 });
 
