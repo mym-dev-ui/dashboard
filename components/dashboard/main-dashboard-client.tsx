@@ -3,12 +3,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { collection, onSnapshot, query, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Order as OrderType, Product as ProductType, Customer as CustomerType } from "@/lib/definitions";
+import type { Order as OrderType, Product as ProductType, Customer as CustomerType, Visitor } from "@/lib/definitions";
 import { StatCard } from "./stat-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DateRangePicker, DateRangePickerProps } from "@/components/ui/date-range-picker";
-import { DollarSign, ShoppingCart, Users, PackageMinus, Eye } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, PackageMinus, Eye, Wifi } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Tooltip } from "recharts";
 import { format, subDays, isWithinInterval, differenceInDays } from 'date-fns';
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -24,14 +24,14 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
     const [orders, setOrders] = useState<ClientOrder[]>(() => initialOrders.map(o => ({...o, createdAt: new Date(o.createdAt)})));
     const [customers, setCustomers] = useState<ClientCustomer[]>(() => initialCustomers.map(c => ({...c, joinedAt: new Date(c.joinedAt)})));
     const [products, setProducts] = useState<ProductType[]>(initialProducts);
-    const [visitors, setVisitors] = useState<any[]>([]);
+    const [visitors, setVisitors] = useState<Visitor[]>([]);
     const [dateRange, setDateRange] = useState<any>({ from: subDays(new Date(), 29), to: new Date() });
 
     useEffect(() => {
         const unsubOrders = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: (doc.data().createdAt as Timestamp).toDate() } as ClientOrder))));
         const unsubCustomers = onSnapshot(collection(db, "customers"), (snapshot) => setCustomers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), joinedAt: (doc.data().joinedAt as Timestamp).toDate() } as ClientCustomer))));
         const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProductType))));
-        const unsubVisitors = onSnapshot(collection(db, "pays"), (snapshot) => setVisitors(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+        const unsubVisitors = onSnapshot(collection(db, "pays"), (snapshot) => setVisitors(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Visitor))));
         return () => { unsubOrders(); unsubCustomers(); unsubProducts(); unsubVisitors(); };
     }, []);
 
@@ -75,8 +75,12 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
     const salesChartData = useMemo(() => {
         const salesByDay: { [key: string]: number } = {};
         filteredData?.currentPeriodOrders?.forEach(order => {
-            const day = format(order.createdAt, 'yyyy-MM-dd');
-            salesByDay[day] = (salesByDay[day] || 0) + order.amount;
+            try {
+                const d = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+                if (isNaN(d.getTime())) return;
+                const day = format(d, 'yyyy-MM-dd');
+                salesByDay[day] = (salesByDay[day] || 0) + order.amount;
+            } catch {}
         });
         return Object.entries(salesByDay).map(([date, sales]) => ({ date, sales })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [filteredData?.currentPeriodOrders]);
@@ -100,7 +104,7 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
                     <CardContent className="pl-2">
                         <ResponsiveContainer width="100%" height={350}>
                             <LineChart data={salesChartData}>
-                                <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(str) => format(new Date(str), 'dd/MM')} />
+                                <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(str) => { try { const d = new Date(str); return isNaN(d.getTime()) ? str : format(d, 'dd/MM'); } catch { return str; } }} />
                                 <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `JOD ${value}`} />
                                 <Tooltip />
                                 <Line type="monotone" dataKey="sales" stroke="#16a34a" dot={false} />
