@@ -12,7 +12,7 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { Home, ShoppingCart, Users, Package, BarChart3, Settings, Droplets, ChevronUp, User } from 'lucide-react';
+import { Home, ShoppingCart, Users, Package, BarChart3, Settings, Droplets, ChevronUp, User, Eye } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ const menuItems = [
   { href: "/orders", icon: ShoppingCart, label: "الطلبات" },
   { href: "/customers", icon: Users, label: "العملاء" },
   { href: "/products", icon: Package, label: "المنتجات" },
+  { href: "/visitors", icon: Eye, label: "الزوار" },
   { href: "/reports", icon: BarChart3, label: "التقارير" },
   { href: "/settings", icon: Settings, label: "الإعدادات" },
 ];
