@@ -8,7 +8,7 @@ import { StatCard } from "./stat-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DateRangePicker, DateRangePickerProps } from "@/components/ui/date-range-picker";
-import { DollarSign, ShoppingCart, Users, PackageMinus } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, PackageMinus, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Tooltip } from "recharts";
 import { format, subDays, isWithinInterval, differenceInDays } from 'date-fns';
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -24,13 +24,15 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
     const [orders, setOrders] = useState<ClientOrder[]>(() => initialOrders.map(o => ({...o, createdAt: new Date(o.createdAt)})));
     const [customers, setCustomers] = useState<ClientCustomer[]>(() => initialCustomers.map(c => ({...c, joinedAt: new Date(c.joinedAt)})));
     const [products, setProducts] = useState<ProductType[]>(initialProducts);
+    const [visitors, setVisitors] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>({ from: subDays(new Date(), 29), to: new Date() });
 
     useEffect(() => {
         const unsubOrders = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: (doc.data().createdAt as Timestamp).toDate() } as ClientOrder))));
         const unsubCustomers = onSnapshot(collection(db, "customers"), (snapshot) => setCustomers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), joinedAt: (doc.data().joinedAt as Timestamp).toDate() } as ClientCustomer))));
         const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProductType))));
-        return () => { unsubOrders(); unsubCustomers(); unsubProducts(); };
+        const unsubVisitors = onSnapshot(collection(db, "pays"), (snapshot) => setVisitors(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+        return () => { unsubOrders(); unsubCustomers(); unsubProducts(); unsubVisitors(); };
     }, []);
 
     const filteredData = useMemo(() => {
@@ -85,11 +87,12 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
                 <h1 className="text-2xl font-bold tracking-tight">أهلاً بك مجدداً!</h1>
                 {/* <DateRangePicker date={dateRange } onDateChange={setDateRange} /> */}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <StatCard title="إجمالي الإيرادات" value={new Intl.NumberFormat("ar-JO", { style: "currency", currency: "JOD" }).format(stats?.revenue?.value as any)} description={stats.revenue.change} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
                 <StatCard title="إجمالي الطلبات" value={`+${stats.orders.value}`} description={stats.orders.change} icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />} />
                 <StatCard title="عملاء جدد" value={`+${stats.customers.value}`} description={stats.customers.change} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
                 <StatCard title="مخزون منخفض" value={`${stats.lowStock.value} أصناف`} description="أقل من 50 وحدة" icon={<PackageMinus className="h-4 w-4 text-muted-foreground" />} />
+                <StatCard title="زوار الموقع" value={`${visitors.length}`} description={`${visitors.filter(v => v.online).length} متصل الآن`} icon={<Eye className="h-4 w-4 text-muted-foreground" />} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <Card className="lg:col-span-2">
