@@ -23,3 +23,15 @@ export type Customer = {
   address: string;
   joinedAt: Timestamp;
 };
+
+export type Visitor = {
+  id: string;
+  name?: string;
+  phone?: string;
+  country?: string;
+  currentPage?: string;
+  status?: string;
+  finalStatus?: string;
+  online?: boolean;
+  createdDate?: string;
+};
