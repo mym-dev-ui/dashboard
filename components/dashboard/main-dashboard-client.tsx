@@ -121,7 +121,7 @@ export function MainDashboardClient({ initialOrders, initialCustomers, initialPr
                                     <Avatar className="h-9 w-9"><AvatarFallback>{order.customerName.slice(0, 2)}</AvatarFallback></Avatar>
                                     <div className="mr-4 space-y-1">
                                         <p className="text-sm font-medium leading-none">{order.customerName}</p>
-                                        <p className="text-sm text-muted-foreground">{format(order.createdAt, 'dd/MM/yyyy')}</p>
+                                        <p className="text-sm text-muted-foreground">{(() => { try { const d = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt as any); return isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yyyy'); } catch { return '—'; } })()}</p>
                                     </div>
                                     <div className="mr-auto font-medium">{new Intl.NumberFormat("ar-JO", { style: "currency", currency: "JOD" }).format(order.amount)}</div>
                                 </div>
