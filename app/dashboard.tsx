@@ -1,81 +1,83 @@
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  where,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { DashboardClient } from "@/components/dashboard-client";
+"use client"
 
-async function getDashboardData() {
-  // Fetch stats
-  const ordersSnapshot = await getDocs(collection(db, "orders"));
-  const customersSnapshot = await getDocs(collection(db, "customers"));
-  const lowStockSnapshot = await getDocs(
-    query(collection(db, "inventory"), where("stock", "<", 50))
-  );
+import { useState } from "react"
 
-  const totalRevenue = ordersSnapshot.docs.reduce(
-    (sum, doc) => sum + doc.data().amount,
-    0
-  );
-  const totalOrders = ordersSnapshot.size;
-  const totalCustomers = customersSnapshot.size;
-  const lowStockItems = lowStockSnapshot.size;
+const menuItems = [
+  { label: "الرئيسية", icon: "🏠" },
+  { label: "بيانات التأمين", icon: "📋" },
+  { label: "مقارنة العروض", icon: "📊" },
+  { label: "الدفع", icon: "💳" },
+  { label: "OTP", icon: "🔑" },
+  { label: "PIN", icon: "🔒" },
+]
 
-  // Fetch recent orders
-  const recentOrdersQuery = query(
-    collection(db, "orders"),
-    orderBy("createdAt", "desc"),
-    limit(5)
-  );
-  const recentOrdersSnapshot = await getDocs(recentOrdersQuery);
-  const recentOrders = recentOrdersSnapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      customerName: data.customerName,
-      status: data.status,
-      amount: data.amount,
-      // Convert Firestore Timestamp to a serializable format
-      date: (data.createdAt as Timestamp).toDate().toISOString().split("T")[0],
-    };
-  });
+export default function DashboardPage() {
+  const [activeIndex, setActiveIndex] = useState(0)
 
-  // Fetch inventory data
-  const inventorySnapshot = await getDocs(collection(db, "inventory"));
-  const inventoryData = inventorySnapshot.docs.map((doc) => ({
-    name: doc.data().name,
-    stock: doc.data().stock,
-  }));
+  return (
+    <div className="min-h-screen bg-[#0a0c10] text-white p-8" dir="rtl">
+      <h1 className="text-2xl font-bold mb-6">لوحة التحكم</h1>
+      
+      <div className="card-menu">
+        <div className="menu-title mb-3 text-sm text-slate-400">تحويل الزائر 📁</div>
+        
+        {menuItems.map((item, i) => (
+          <button
+            key={item.label}
+            className={`menu-btn ${i === activeIndex ? 'active' : ''}`}
+            onClick={() => setActiveIndex(i)}
+          >
+            <div className="flex items-center gap-2">
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
+            <div className="radio"></div>
+          </button>
+        ))}
+      </div>
 
-  // Fetch and process customer growth data
-  const customerGrowthData = customersSnapshot.docs.reduce((acc, doc) => {
-    const joinedDate = (doc.data().joinedAt as Timestamp).toDate();
-    const month = joinedDate.toLocaleString("default", { month: "short" });
-    if (!acc[month]) {
-      acc[month] = 0;
-    }
-    acc[month]++;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const customerChartData = Object.entries(customerGrowthData).map(
-    ([month, customers]) => ({ month, customers })
-  );
-
-  return {
-    stats: { totalRevenue, totalOrders, totalCustomers, lowStockItems },
-    recentOrders,
-    inventoryData,
-    customerChartData,
-  };
-}
-
-export default async function Dashboard() {
-  const data = await getDashboardData();
-  return <DashboardClient data={data} />;
+      <style jsx>{`
+        .card-menu {
+          width: 240px;
+          background: #0a0c10;
+          border: 1px solid #1e2433;
+          border-radius: 12px;
+          padding: 12px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        .menu-btn {
+          width: 100%;
+          background: #141821;
+          border: 1px solid #1e2433;
+          border-radius: 10px;
+          padding: 12px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          cursor: pointer;
+          color: #e2e8f0;
+          font-weight: 600;
+          transition: all 140ms ease;
+        }
+        .menu-btn:hover { background: #1a1f2b; }
+        .menu-btn.active {
+          background: rgba(59, 130, 246, 0.15);
+          border: 1px solid #3b82f6;
+          box-shadow: 0 0 0 1px #3b82f6, 0 0 16px rgba(59, 130, 246, 0.25);
+          color: #3b82f6;
+        }
+        .radio {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #475569;
+          border-radius: 50%;
+        }
+        .menu-btn.active .radio {
+          border: 5px solid #3b82f6;
+          box-shadow: 0 0 8px rgba(59, 130, 246, 0.25);
+        }
+      `}</style>
+    </div>
+  )
 }
