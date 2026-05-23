@@ -1,78 +1,55 @@
-"use client";
+.page-container {
+  padding: 24px;
+  background: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
+}
 
-import { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import type { Order } from "@/lib/definitions";
-import { DataTable } from "./data-table";
-import { columns, neonTableStyles } from "./columns";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { OrderForm } from "@/components/dashboard/order-form";
+.page-header {
+  margin-bottom: 24px;
+}
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
+.page-header h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
 
-  useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const ordersData: Order[] = [];
-      querySnapshot.forEach((doc) => {
-        ordersData.push({ id: doc.id, ...doc.data() } as Order);
-      });
-      setOrders(ordersData);
-      setLoading(false);
-    });
+.table-wrapper {
+  overflow-x: auto;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 16px;
+}
 
-    return () => unsubscribe();
-  }, []);
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  return (
-    <>
-      <div className="page-container" dir="rtl">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">الطلبات</h1>
-            <p className="page-subtitle">إدارة وعرض جميع الطلبات</p>
-          </div>
-          
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="add-btn">
-                <PlusCircle className="ml-2 h-4 w-4" />
-                إضافة طلب جديد
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="dialog-content">
-              <DialogHeader>
-                <DialogTitle>إنشاء طلب جديد</DialogTitle>
-              </DialogHeader>
-              <OrderForm setOpen={setOpen} />
-            </DialogContent>
-          </Dialog>
-        </div>
+.orders-table th,
+.orders-table td {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
 
-        {loading ? (
-          <div className="loading">جاري التحميل...</div>
-        ) : (
-          <DataTable columns={columns} data={orders} />
-        )}
-      </div>
+.orders-table th {
+  background: #222;
+  font-weight: 600;
+}
 
-      <style jsx global>{neonTableStyles}</style>
+.status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
 
-      <style jsx>{`
-        .page-container {
-          padding: 24px;
-          min-height: 100vh;
-          background: #050810;
-          color: #e
+.status.completed {
+  background: #10b981;
+  color: #fff;
+}
+
+.status.pending {
+  background: #f59e0b;
+  color: #fff;
+}
