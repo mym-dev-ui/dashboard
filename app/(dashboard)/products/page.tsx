@@ -1,61 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { ref, onValue, query, orderByChild } from "firebase/database";
 import { db } from "@/lib/firebase";
-import type { Product } from "@/lib/definitions";
-import { DataTable } from "@/app/(dashboard)/orders/data-table"; // Reusing the data-table component
-import { columns } from "./columns";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { ProductForm } from "@/components/dashboard/product-form";
+import { Product } from "@/lib/definitions";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, "products"), orderBy("name"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const productsData: Product[] = [];
-      querySnapshot.forEach((doc) => {
-        productsData.push({ id: doc.id, ...doc.data() } as Product);
-      });
-      setProducts(productsData);
+    const productsRef = query(ref(db, "products"), orderByChild("name"));
+
+    const unsubscribe = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productsList = Object.keys(data).map(key => ({
+          id: key,
+        ...data[key]
+        }));
+        setProducts(productsList);
+      } else {
+        setProducts([]);
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  if (loading) return <div className="p-6">جاري التحميل...</div>;
+
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">إدارة المنتجات</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="ml-2 h-4 w-4" />
-              إضافة منتج جديد
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>إنشاء منتج جديد</DialogTitle>
-            </DialogHeader>
-            <ProductForm setOpen={setOpen} />
-          </DialogContent>
-        </Dialog>
+    <div className="page-container p-6" dir="rtl">
+      <h1 className="text-2xl font-bold mb-4">المنتجات</h1>
+      <p className="mb-6 text-gray-400">عدد المنتجات: {products.length}</p>
+
+      <div className="grid gap-4">
+        {products.length === 0? (
+          <p>لا يوجد منتجات</p>
+        ) : (
+          products.map((product) => (
+            <div key={product.id} className="p-4 bg-gray-800 rounded-lg">
+              <h3 className="font-bold">{product.name}</h3>
+              <p className="text-gray-400">{product.price} $</p>
+            </div>
+          ))
+        )}
       </div>
-      <DataTable columns={columns} data={products} isLoading={loading} />
     </div>
   );
 }
