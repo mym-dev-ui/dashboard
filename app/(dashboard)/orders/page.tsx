@@ -1,55 +1,88 @@
-.page-container {
-  padding: 24px;
-  background: #0a0a0a;
-  color: #fff;
-  min-height: 100vh;
+"use client";
+
+import { useEffect, useState } from "react";
+import { ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
+
+interface Order {
+  id: string;
+  customer: string;
+  amount: number;
+  status: string;
+  date: string;
 }
 
-.page-header {
-  margin-bottom: 24px;
-}
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-.page-header h1 {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
+  useEffect(() => {
+    const ordersRef = ref(db, 'orders');
 
-.table-wrapper {
-  overflow-x: auto;
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 16px;
-}
+    const unsubscribe = onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const ordersList = Object.keys(data).map(key => ({
+          id: key,
+         ...data[key]
+        }));
+        setOrders(ordersList);
+      } else {
+        setOrders([]);
+      }
+      setLoading(false);
+    });
 
-.orders-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+    return () => unsubscribe();
+  }, []);
 
-.orders-table th,
-.orders-table td {
-  padding: 12px;
-  text-align: right;
-  border-bottom: 1px solid #333;
-}
+  if (loading) {
+    return <div className="page-container">جاري التحميل...</div>;
+  }
 
-.orders-table th {
-  background: #222;
-  font-weight: 600;
-}
+  return (
+    <div className="page-container" dir="rtl">
+      <div className="page-header">
+        <div>
+          <h1>الطلبات</h1>
+          <p>عدد الطلبات: {orders.length}</p>
+        </div>
+      </div>
 
-.status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-}
-
-.status.completed {
-  background: #10b981;
-  color: #fff;
-}
-
-.status.pending {
-  background: #f59e0b;
-  color: #fff;
+      <div className="table-wrapper">
+        <table className="orders-table">
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>العميل</th>
+              <th>المبلغ</th>
+              <th>الحالة</th>
+              <th>التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.length === 0? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center' }}>لا توجد طلبات</td>
+              </tr>
+            ) : (
+              orders.map((order) => (
+                <tr key={order.id}>
+                  <td>{order.id}</td>
+                  <td>{order.customer}</td>
+                  <td>{order.amount} $</td>
+                  <td>
+                    <span className={`status ${order.status}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td>{order.date}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
