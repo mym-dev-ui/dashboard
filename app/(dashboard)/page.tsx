@@ -1,44 +1,37 @@
-import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { MainDashboardClient } from "@/components/dashboard/main-dashboard-client";
-import type { Order, Product, Customer } from "@/lib/definitions";
+"use client"
+import { useEffect, useState } from "react"
+import { ref, onValue } from "firebase/database"
+import { db } from "@/lib/firebase"
 
-const serializeTimestamps = (data: any[]) =>
-  data.map((item) => {
-    const newItem = { ...item };
+export default function DashboardPage() {
+  const [analytics, setAnalytics] = useState<any>({})
+  const [presence, setPresence] = useState<any>({})
+  const [status, setStatus] = useState<any>({})
+  const [loading, setLoading] = useState(true)
 
-    for (const key in newItem) {
-      if (
-        newItem[key] &&
-        newItem[key] instanceof Timestamp
-      ) {
-        newItem[key] = newItem[key]
-          .toDate()
-          .toISOString();
-      }
+  useEffect(() => {
+    const unsubAnalytics = onValue(ref(db, 'analytics'), (snap) => {
+      setAnalytics(snap.val() || {})
+    })
+    
+    const unsubPresence = onValue(ref(db, 'presence'), (snap) => {
+      setPresence(snap.val() || {})
+    })
+    
+    const unsubStatus = onValue(ref(db, 'status'), (snap) => {
+      setStatus(snap.val() || {})
+      setLoading(false)
+    })
+
+    return () => {
+      unsubAnalytics()
+      unsubPresence()
+      unsubStatus()
     }
+  }, [])
 
-    return newItem;
-  });
-async function getDashboardData() {
-  const [ordersSnapshot, customersSnapshot, productsSnapshot] = await Promise.all([
-    getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc"))),
-    getDocs(collection(db, "customers")),
-    getDocs(collection(db, "products"))
-  ]);
+  const onlineCount = Object.values(presence).filter((u: any) => u.online).length
+  const totalUsers = Object.keys(presence).length
 
-  const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Order[];
-  const customers = customersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Customer[];
-  const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
-
-  return {
-    initialOrders: serializeTimestamps(orders),
-    initialCustomers: serializeTimestamps(customers),
-    initialProducts: serializeTimestamps(products),
-  };
-}
-
-export default async function DashboardPage() {
-  const data = await getDashboardData();
-  return <MainDashboardClient {...data} />;
-}
+  return (
+    <div
