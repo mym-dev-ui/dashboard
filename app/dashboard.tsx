@@ -1,26 +1,10 @@
-"use client"
-
-import { useState } from "react"
-
-const menuItems = [
-  { label: "الرئيسية", icon: "🏠" },
-  { label: "بيانات التأمين", icon: "📋" },
-  { label: "مقارنة العروض", icon: "📊" },
-  { label: "الدفع", icon: "💳" },
-  { label: "OTP", icon: "🔑" },
-  { label: "PIN", icon: "🔒" },
-]
-
-export default function DashboardPage() {
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  return (
+return (
     <div className="min-h-screen bg-[#0a0c10] text-white p-8" dir="rtl">
       <h1 className="text-2xl font-bold mb-6">لوحة التحكم</h1>
-      
+
       <div className="card-menu">
         <div className="menu-title mb-3 text-sm text-slate-400">تحويل الزائر 📁</div>
-        
+
         {menuItems.map((item, i) => (
           <button
             key={item.label}
