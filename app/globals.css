@@ -1,32 +1,55 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ألوان اللوحة - الأزرق المينيمال */
-:root {
-  --bg-primary: #0a0c10;
-  --bg-secondary: #141821;
-  --bg-hover: #1a1f2b;
-  --bg-active: rgba(59, 130, 246, 0.15);
-  --border: #1e2433;
-  --border-active: #3b82f6;
-  --text-primary: #e2e8f0;
-  --text-secondary: #64748b;
-  --text-accent: #3b82f6;
-  --shadow-active: rgba(59, 130, 246, 0.25);
+.page-container {
+  padding: 24px;
+  background: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
 }
 
-* {
-  box-sizing: border-box;
+.page-header {
+  margin-bottom: 24px;
 }
 
-html, body {
-  height: 100%;
+.page-header h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
 }
 
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  margin: 0;
+.table-wrapper {
+  overflow-x: auto;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
+
+.orders-table th {
+  background: #222;
+  font-weight: 600;
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.status.completed {
+  background: #10b981;
+  color: #fff;
+}
+
+.status.pending {
+  background: #f59e0b;
+  color: #fff;
 }
