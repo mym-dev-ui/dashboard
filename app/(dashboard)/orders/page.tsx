@@ -5,9 +5,9 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Order } from "@/lib/definitions";
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { columns, neonTableStyles } from "./columns";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,25 +37,42 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="ml-2 h-4 w-4" />
-              إضافة طلب جديد
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>إنشاء طلب جديد</DialogTitle>
-            </DialogHeader>
-            <OrderForm setOpen={setOpen} />
-          </DialogContent>
-        </Dialog>
+    <>
+      <div className="page-container" dir="rtl">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">الطلبات</h1>
+            <p className="page-subtitle">إدارة وعرض جميع الطلبات</p>
+          </div>
+          
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="add-btn">
+                <PlusCircle className="ml-2 h-4 w-4" />
+                إضافة طلب جديد
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="dialog-content">
+              <DialogHeader>
+                <DialogTitle>إنشاء طلب جديد</DialogTitle>
+              </DialogHeader>
+              <OrderForm setOpen={setOpen} />
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {loading ? (
+          <div className="loading">جاري التحميل...</div>
+        ) : (
+          <DataTable columns={columns} data={orders} />
+        )}
       </div>
-      <DataTable columns={columns} data={orders} isLoading={loading} />
-    </div>
-  );
-}
+
+      <style jsx global>{neonTableStyles}</style>
+
+      <style jsx>{`
+        .page-container {
+          padding: 24px;
+          min-height: 100vh;
+          background: #050810;
+          color: #e
