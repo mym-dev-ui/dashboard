@@ -1,58 +1,52 @@
-import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
-import { db } from "./firebase";
+"use server";
+
+import { ref, set, update, remove, push } from "firebase/database";
+import { db } from "@/lib/firebase";
 import { revalidatePath } from "next/cache";
-import type { Product, Customer, Order } from "./definitions";
+import { Timestamp } from "firebase/database";
+import { Product, Customer, Order } from "../definitions";
 
 // Product Actions
 export async function createProduct(product: Omit<Product, 'id'>) {
-  await addDoc(collection(db, "products"), product);
+  const newRef = push(ref(db, "products"));
+  await set(newRef, product);
   revalidatePath("/products");
 }
 
 export async function updateProduct(id: string, product: Partial<Product>) {
-  await updateDoc(doc(db, "products", id), product);
+  await update(ref(db, `products/${id}`), product);
   revalidatePath("/products");
 }
 
 export async function deleteProduct(id: string) {
-  await deleteDoc(doc(db, "products", id));
+  await remove(ref(db, `products/${id}`));
   revalidatePath("/products");
 }
 
 // Customer Actions
 export async function createCustomer(customer: Omit<Customer, 'id' | 'joinedAt'>) {
-    await addDoc(collection(db, "customers"), {
-        ...customer,
-        joinedAt: Timestamp.now(),
-    });
-    revalidatePath("/customers");
+  const newRef = push(ref(db, "customers"));
+  await set(newRef, {
+    ...customer,
+    joinedAt: Date.now(),
+  });
+  revalidatePath("/customers");
 }
 
 export async function updateCustomer(id: string, customer: Partial<Customer>) {
-  await updateDoc(doc(db, "customers", id), customer);
+  await update(ref(db, `customers/${id}`), customer);
   revalidatePath("/customers");
 }
 
 export async function deleteCustomer(id: string) {
-  await deleteDoc(doc(db, "customers", id));
+  await remove(ref(db, `customers/${id}`));
   revalidatePath("/customers");
 }
 
 // Order Actions
-export async function createOrder(order: Omit<Order, 'id' | 'createdAt'>) {
-    await addDoc(collection(db, "orders"), {
-        ...order,
-        createdAt: Timestamp.now(),
-    });
-    revalidatePath("/orders");
-}
-
-export async function updateOrderStatus(id: string, status: Order['status']) {
-  await updateDoc(doc(db, "orders", id), { status });
-  revalidatePath("/orders");
-}
-
-export async function deleteOrder(id: string) {
-  await deleteDoc(doc(db, "orders", id));
+export async function deleteOrderAction(formData: FormData) {
+  const id = formData.get("id") as string;
+  if (!id) return;
+  await remove(ref(db, `orders/${id}`));
   revalidatePath("/orders");
 }
