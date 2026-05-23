@@ -1,8 +1,8 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { getDatabase, type Database } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB-qlb_QYAPBqijr00XN-PeUd9DTzI0MDs",
+  apiKey: "AIzaSyB-qlb_QYAPbqijr00XN-PeUd9DTzI0MDs",
   authDomain: "taameeni-v1.firebaseapp.com",
   databaseURL: "https://taameeni-v1-default-rtdb.firebaseio.com",
   projectId: "taameeni-v1",
@@ -13,16 +13,15 @@ const firebaseConfig = {
 };
 
 let app: FirebaseApp;
-let db: Firestore;
+let db: Database;
 
 try {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  db = getDatabase(app);
 } catch (error) {
   console.error("Firebase initialization error", error);
-  throw new Error(
-    "Failed to initialize Firebase. Please ensure you have enabled Firestore in your Firebase project console and that your configuration is correct."
-  );
+  throw new Error("Failed to initialize Firebase.");
 }
 
 export { db };
+export default app;
